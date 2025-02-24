@@ -24,7 +24,7 @@ if (!printers.find(p => p.printer === PRINTER_NAME)) {
 }
 
 // TODO change updatedAfter to db.data.lastChecked
-const articles = await reader.getDocuments( { updatedAfter: oneHourAgo.toISOString() });
+const articles = await reader.getDocuments( { updatedAfter: db.data.lastChecked });
 db.data.lastChecked = new Date().toISOString()
 
 // filter out articles already in db
