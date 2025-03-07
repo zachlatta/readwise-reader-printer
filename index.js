@@ -4,6 +4,7 @@ import { print, getPrinters} from 'unix-print'
 
 console.log('Starting Readwise Reader Printer service...')
 
+const PRINT_OPTIONS = [ '-o sides=two-sided-long-edge' ]
 const PRINTER_NAME = process.env.PRINTER_NAME
 if (!PRINTER_NAME) {
   console.error('PRINTER_NAME environment variable not set')
@@ -49,6 +50,12 @@ console.log(`Found ${newArticles.length} new articles to process`)
 for (const article of newArticles) {
   console.log(`\nProcessing article: ${article.source_url}`)
   
+  // Skip mailto links
+  if (article.source_url.includes('mailto')) {
+    console.log('Skipping mailto link')
+    continue
+  }
+  
   // fetch and get content-type of article.source_url
   console.log('Fetching article content...')
   const response = await fetch(article.source_url)
@@ -79,7 +86,7 @@ for (const article of newArticles) {
   }
 
   console.log(`Sending PDF to printer: ${PRINTER_NAME}`)
-  await print(pdfPath, PRINTER_NAME)
+  await print(pdfPath, PRINTER_NAME, PRINT_OPTIONS)
   console.log('Print job sent successfully')
 
   console.log('Waiting 5 seconds before cleanup...')
@@ -94,11 +101,16 @@ for (const article of newArticles) {
   if (!db.data.processedArticles.includes(article.source_url)) {
     db.data.processedArticles.push(article.source_url)
     console.log('Article marked as processed in database')
+    
+    // Save DB after each article is processed
+    console.log('Saving database after processing article...')
+    await db.write()
+    console.log('Database saved successfully')
   }
 }
 
-console.log('\nSaving database...')
+// Final database save - now just a confirmation since we save after each article
+console.log('\nAll articles processed. Confirming final database state...')
 await db.write()
-console.log('Database saved successfully')
 console.log('Processing complete!')
 
