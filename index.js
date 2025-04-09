@@ -1,6 +1,7 @@
 import { JSONFilePreset } from 'lowdb/node'
 import ReadwiseReaderAPI from './readwiseReader.js'
 import { print, getPrinters } from 'unix-print'
+import readline from 'readline'
 
 console.log('Starting Readwise Reader Printer service...')
 
